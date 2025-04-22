@@ -44,8 +44,8 @@
     <div class="verify-card">
         <div class="verify-title">📄 Verifikasi SKL Digital</div>
         <div class="verify-subtitle">
-            Unggah dokumen SKL (PDF) untuk memastikan keasliannya secara digital.
-        </div>
+        Unggah dokumen SKL (format PDF) untuk memverifikasi keasliannya secara digital. Jika Anda memiliki dokumen dalam bentuk cetak, silakan pindai QR code yang tertera untuk mengakses file PDF-nya.
+     </div>
 
         <form action="verify.php" method="POST" enctype="multipart/form-data">
             <div class="mb-3">
