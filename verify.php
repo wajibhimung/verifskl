@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 $trusted_signers = ['- Dra. Hj. Helwatin Najwa'];
 $data = [];
 $is_modified = true;
