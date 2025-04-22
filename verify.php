@@ -6,11 +6,13 @@ $trusted_signers = ['- Dra. Hj. Helwatin Najwa'];
 $data = [];
 $is_modified = true;
 $integrity_status = '❌ Dokumen Telah Mengalami Perubahan atau Tidak Terverifikasi.';
+$uploaded_filename = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_FILES['pdf_file']) && $_FILES['pdf_file']['error'] === UPLOAD_ERR_OK) {
         $fileTmpPath = $_FILES['pdf_file']['tmp_name'];
         $fileName = basename($_FILES['pdf_file']['name']);
+        $uploaded_filename = $fileName;
         $uploadDir = __DIR__ . '/uploads/';
         $uploadPath = $uploadDir . $fileName;
 
@@ -93,6 +95,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
             box-sizing: border-box;
         }
+        h2 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+        .filename {
+            text-align: center;
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 14px;
+            word-wrap: break-word;
+        }
         .status {
             font-size: 18px;
             font-weight: bold;
@@ -100,6 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 20px;
             word-wrap: break-word;
             overflow-wrap: break-word;
+            text-align: center;
         }
         table {
             width: 100%;
@@ -148,7 +163,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="container">
+        <h2>📄 Hasil Verifikasi Dokumen</h2>
+        <?php if ($uploaded_filename): ?>
+            <div class="filename">Nama file: <strong><?= htmlspecialchars($uploaded_filename) ?></strong></div>
+        <?php endif; ?>
+
         <div class="status"><?= htmlspecialchars($integrity_status) ?></div>
+
         <?php if (isset($data['error'])): ?>
             <p style="color: red;"><?= htmlspecialchars($data['error']) ?></p>
         <?php else: ?>
@@ -161,7 +182,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php endforeach; ?>
             </table>
         <?php endif; ?>
-        <a href="index.php" class="back-btn">🔙 Kembali</a>
+        
+        <div style="text-align: center;">
+            <a href="index.php" class="back-btn">🔙 Kembali</a>
+        </div>
     </div>
 </body>
 </html>
