@@ -6,13 +6,12 @@ $trusted_signers = ['- Dra. Hj. Helwatin Najwa'];
 $data = [];
 $is_modified = true;
 $integrity_status = '❌ Dokumen Telah Mengalami Perubahan atau Tidak Terverifikasi.';
-$uploaded_filename = '';
+$fileName = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_FILES['pdf_file']) && $_FILES['pdf_file']['error'] === UPLOAD_ERR_OK) {
         $fileTmpPath = $_FILES['pdf_file']['tmp_name'];
         $fileName = basename($_FILES['pdf_file']['name']);
-        $uploaded_filename = $fileName;
         $uploadDir = __DIR__ . '/uploads/';
         $uploadPath = $uploadDir . $fileName;
 
@@ -77,115 +76,96 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hasil Verifikasi</title>
+    <title>Hasil Verifikasi Dokumen</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-            padding: 30px;
-            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f9f9f9;
+            margin: 20px;
+            padding: 0;
         }
         .container {
-            max-width: 600px;
+            max-width: 700px;
             margin: auto;
             background: white;
-            padding: 20px 30px;
+            padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
-            box-sizing: border-box;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
         }
         h2 {
             text-align: center;
-            margin-bottom: 10px;
-            font-size: 22px;
+            color: #333;
         }
-        .filename {
-            text-align: center;
-            color: #555;
-            margin-bottom: 15px;
-            font-size: 14px;
-            word-wrap: break-word;
-        }
-        .status {
-            font-size: 18px;
-            font-weight: bold;
-            color: <?= $is_modified ? '#e74c3c' : '#27ae60' ?>;
-            margin-bottom: 20px;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            text-align: center;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
-        td {
-            padding: 8px 10px;
-            border-bottom: 1px solid #ddd;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-        }
-        td:first-child {
-            font-weight: bold;
-            width: 40%;
-        }
-        .back-btn {
-            margin-top: 20px;
-            display: inline-block;
-            background: #3498db;
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
+        .status-box {
+            padding: 12px 16px;
             border-radius: 8px;
-            text-align: center;
+            font-weight: bold;
+            margin-bottom: 16px;
+            word-wrap: break-word;
         }
-        .back-btn:hover {
-            background: #2980b9;
+        .status-valid {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 15px;
-            }
-            .container {
-                padding: 15px;
-            }
-            .status {
-                font-size: 16px;
-            }
-            td {
-                font-size: 14px;
+        .status-invalid {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .details {
+            background-color: #f1f1f1;
+            padding: 10px 14px;
+            border-radius: 6px;
+            line-height: 1.6;
+            overflow-wrap: break-word;
+        }
+        .details div {
+            margin-bottom: 8px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #007bff;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        @media screen and (max-width: 600px) {
+            .status-box {
+                font-size: 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>📄 Hasil Verifikasi Dokumen</h2>
-        <?php if ($uploaded_filename): ?>
-            <div class="filename">Nama file: <strong><?= htmlspecialchars($uploaded_filename) ?></strong></div>
-        <?php endif; ?>
+<div class="container">
+    <h2>🔍 Hasil Verifikasi Dokumen</h2>
 
-        <div class="status"><?= htmlspecialchars($integrity_status) ?></div>
+    <?php if (!empty($fileName)): ?>
+        <p><strong>📄 Nama File:</strong> <?= htmlspecialchars($fileName) ?></p>
+    <?php endif; ?>
 
-        <?php if (isset($data['error'])): ?>
-            <p style="color: red;"><?= htmlspecialchars($data['error']) ?></p>
-        <?php else: ?>
-            <table>
-                <?php foreach ($data as $key => $value): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($key) ?></td>
-                        <td><?= htmlspecialchars($value) ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            </table>
-        <?php endif; ?>
-        
-        <div style="text-align: center;">
-            <a href="index.php" class="back-btn">🔙 Kembali</a>
-        </div>
+    <?php
+        $statusClass = $is_modified ? 'status-invalid' : 'status-valid';
+        echo '<div class="status-box ' . $statusClass . '">' . htmlspecialchars($integrity_status) . '</div>';
+    ?>
+
+    <div class="details">
+        <?php
+        if (!empty($data['error'])) {
+            echo '<div style="color: red;">⚠️ ' . htmlspecialchars($data['error']) . '</div>';
+        } else {
+            foreach ($data as $label => $value) {
+                echo "<div><strong>$label:</strong> " . htmlspecialchars($value) . "</div>";
+            }
+        }
+        ?>
     </div>
+
+    <a class="back-link" href="index.php">← Kembali ke halaman upload</a>
+</div>
 </body>
 </html>
