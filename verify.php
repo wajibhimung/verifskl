@@ -37,8 +37,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $data['✅ Validasi Tanda Tangan'] = trim(str_replace('Signature Validation:', '', $line));
                     } elseif (stripos($line, 'Certificate Validation:') !== false) {
                         $data['🔒 Status Sertifikat'] = trim(str_replace('Certificate Validation:', '', $line));
-                    } elseif (stripos($line, 'Signer full Distinguished Name:') !== false) {
-                        $data['📛 Identitas Lengkap'] = trim(str_replace('Signer full Distinguished Name:', '', $line));
                     } elseif (stripos($line, 'Location:') !== false) {
                         $data['📍 Lokasi'] = trim(str_replace('Location:', '', $line));
                     } elseif (stripos($line, 'Reason:') !== false) {
@@ -81,26 +79,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
-            background-color: #f9f9f9;
-            margin: 20px;
-            padding: 0;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
         }
         .container {
-            max-width: 700px;
+            max-width: 680px;
             margin: auto;
             background: white;
-            padding: 20px;
+            padding: 24px;
             border-radius: 12px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
         h2 {
             text-align: center;
-            color: #333;
+            color: #222;
+            margin-bottom: 20px;
         }
         .status-box {
             padding: 12px 16px;
             border-radius: 8px;
-            font-weight: bold;
+            font-weight: 600;
             margin-bottom: 16px;
             word-wrap: break-word;
         }
@@ -115,18 +114,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid #f5c6cb;
         }
         .details {
-            background-color: #f1f1f1;
-            padding: 10px 14px;
-            border-radius: 6px;
+            background-color: #fafafa;
+            padding: 16px;
+            border-radius: 8px;
             line-height: 1.6;
-            overflow-wrap: break-word;
         }
         .details div {
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            overflow-wrap: break-word;
         }
         .back-link {
-            display: inline-block;
-            margin-top: 20px;
+            display: block;
+            margin-top: 24px;
+            text-align: center;
             text-decoration: none;
             color: #007bff;
         }
@@ -134,8 +134,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-decoration: underline;
         }
         @media screen and (max-width: 600px) {
-            .status-box {
-                font-size: 1rem;
+            .container {
+                padding: 18px;
             }
         }
     </style>
@@ -159,7 +159,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo '<div style="color: red;">⚠️ ' . htmlspecialchars($data['error']) . '</div>';
         } else {
             foreach ($data as $label => $value) {
-                echo "<div><strong>$label:</strong> " . htmlspecialchars($value) . "</div>";
+                if ($label !== '📛 Identitas Lengkap') {
+                    echo "<div><strong>$label:</strong> " . htmlspecialchars($value) . "</div>";
+                }
             }
         }
         ?>
