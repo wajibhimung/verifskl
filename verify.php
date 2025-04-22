@@ -1,9 +1,7 @@
 <?php
-// Tampilkan semua error untuk debugging
-ini_set('display_errors', 1);
 error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-// Daftar penandatangan yang dipercaya
 $trusted_signers = ['- Dra. Hj. Helwatin Najwa'];
 $data = [];
 $is_modified = true;
@@ -16,57 +14,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $uploadDir = __DIR__ . '/uploads/';
         $uploadPath = $uploadDir . $fileName;
 
-        // Pastikan folder upload ada
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
 
-        // Upload file
         if (move_uploaded_file($fileTmpPath, $uploadPath)) {
-            if (file_exists($uploadPath)) {
-                $escapedPath = escapeshellarg($uploadPath);
-                $output = shell_exec("pdfsig $escapedPath");
+            $escapedPath = escapeshellarg($uploadPath);
+            $output = shell_exec("pdfsig $escapedPath");
 
-                if ($output) {
-                    $lines = explode("\n", $output);
-                    $signer_name = '';
+            if ($output) {
+                $lines = explode("\n", $output);
+                $signer_name = '';
 
-                    foreach ($lines as $line) {
-                        if (stripos($line, 'Signer Certificate Common Name:') !== false) {
-                            $signer_name = trim(str_replace('Signer Certificate Common Name:', '', $line));
-                            $data['🧾 Nama Penandatangan'] = $signer_name;
-                        } elseif (stripos($line, 'Signing Time:') !== false) {
-                            $data['⏰ Waktu Tanda Tangan'] = trim(str_replace('Signing Time:', '', $line));
-                        } elseif (stripos($line, 'Signature Validation:') !== false) {
-                            $data['✅ Validasi Tanda Tangan'] = trim(str_replace('Signature Validation:', '', $line));
-                        } elseif (stripos($line, 'Certificate Validation:') !== false) {
-                            $data['🔒 Status Sertifikat'] = trim(str_replace('Certificate Validation:', '', $line));
-                        } elseif (stripos($line, 'Signer full Distinguished Name:') !== false) {
-                            $data['📛 Identitas Lengkap'] = trim(str_replace('Signer full Distinguished Name:', '', $line));
-                        } elseif (stripos($line, 'Location:') !== false) {
-                            $data['📍 Lokasi'] = trim(str_replace('Location:', '', $line));
-                        } elseif (stripos($line, 'Reason:') !== false) {
-                            $data['📝 Alasan'] = trim(str_replace('Reason:', '', $line));
-                        }
+                foreach ($lines as $line) {
+                    if (stripos($line, 'Signer Certificate Common Name:') !== false) {
+                        $signer_name = trim(str_replace('Signer Certificate Common Name:', '', $line));
+                        $data['🧾 Nama Penandatangan'] = $signer_name;
+                    } elseif (stripos($line, 'Signing Time:') !== false) {
+                        $data['⏰ Waktu Tanda Tangan'] = trim(str_replace('Signing Time:', '', $line));
+                    } elseif (stripos($line, 'Signature Validation:') !== false) {
+                        $data['✅ Validasi Tanda Tangan'] = trim(str_replace('Signature Validation:', '', $line));
+                    } elseif (stripos($line, 'Certificate Validation:') !== false) {
+                        $data['🔒 Status Sertifikat'] = trim(str_replace('Certificate Validation:', '', $line));
+                    } elseif (stripos($line, 'Signer full Distinguished Name:') !== false) {
+                        $data['📛 Identitas Lengkap'] = trim(str_replace('Signer full Distinguished Name:', '', $line));
+                    } elseif (stripos($line, 'Location:') !== false) {
+                        $data['📍 Lokasi'] = trim(str_replace('Location:', '', $line));
+                    } elseif (stripos($line, 'Reason:') !== false) {
+                        $data['📝 Alasan'] = trim(str_replace('Reason:', '', $line));
                     }
+                }
 
-                    // Normalisasi nama untuk cocokkan dengan trusted signer
-                    $normalized = trim(preg_replace('/\s+/', ' ', $signer_name));
-                    $trusted_list = array_map(fn($n) => trim(preg_replace('/\s+/', ' ', $n)), $trusted_signers);
+                $normalized = trim(preg_replace('/\s+/', ' ', $signer_name));
+                $trusted_list = array_map(fn($n) => trim(preg_replace('/\s+/', ' ', $n)), $trusted_signers);
 
-                    if (in_array($normalized, $trusted_list)) {
-                        $data['🔒 Status Sertifikat'] = '✅ OK (Trusted by SMKN 1 Telagasari)';
-                    }
+                if (in_array($normalized, $trusted_list)) {
+                    $data['🔒 Status Sertifikat'] = '✅ OK (Trusted by SMKN 1 Telagasari)';
+                }
 
-                    if (isset($data['✅ Validasi Tanda Tangan']) && stripos($data['✅ Validasi Tanda Tangan'], 'valid') !== false) {
-                        $is_modified = false;
-                        $integrity_status = '✅ Dokumen LULUS VERIFIKASI dan BELUM mengalami perubahan.';
-                    }
-                } else {
-                    $data['error'] = 'Gagal membaca hasil verifikasi dari pdfsig.';
+                if (isset($data['✅ Validasi Tanda Tangan']) && stripos($data['✅ Validasi Tanda Tangan'], 'valid') !== false) {
+                    $is_modified = false;
+                    $integrity_status = '✅ Dokumen VALID dan BELUM mengalami perubahan.';
                 }
             } else {
-                $data['error'] = 'File berhasil diupload, tapi tidak ditemukan.';
+                $data['error'] = 'Gagal membaca hasil verifikasi dari pdfsig.';
             }
         } else {
             $data['error'] = 'Gagal menyimpan file ke folder uploads.';
@@ -75,39 +66,79 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data['error'] = 'Upload gagal atau file tidak valid.';
     }
 } else {
-    // Redirect ke index jika bukan POST
     header("Location: index.php");
     exit;
 }
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Hasil Verifikasi PDF</title>
     <meta charset="UTF-8">
+    <title>Hasil Verifikasi</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .status { font-size: 18px; margin-bottom: 20px; }
-        .result { background: #f9f9f9; padding: 15px; border-radius: 8px; }
-        .error { color: red; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            padding: 30px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+        }
+        .status {
+            font-size: 18px;
+            font-weight: bold;
+            color: <?= $is_modified ? '#e74c3c' : '#27ae60' ?>;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        td:first-child {
+            font-weight: bold;
+        }
+        .back-btn {
+            margin-top: 20px;
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+        .back-btn:hover {
+            background: #2980b9;
+        }
     </style>
 </head>
 <body>
-    <h2>Hasil Verifikasi Dokumen PDF</h2>
+<div class="container">
     <div class="status"><?= htmlspecialchars($integrity_status) ?></div>
-
     <?php if (!empty($data['error'])): ?>
-        <div class="error">⚠️ <?= htmlspecialchars($data['error']) ?></div>
+        <p style="color: red;"><?= htmlspecialchars($data['error']) ?></p>
     <?php else: ?>
-        <div class="result">
-            <ul>
-                <?php foreach ($data as $label => $value): ?>
-                    <li><strong><?= $label ?>:</strong> <?= htmlspecialchars($value) ?></li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
+        <table>
+            <?php foreach ($data as $key => $value): ?>
+                <?php if ($key !== 'error'): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($key) ?></td>
+                        <td><?= htmlspecialchars($value) ?></td>
+                    </tr>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </table>
     <?php endif; ?>
-    <p><a href="index.php">← Kembali ke halaman upload</a></p>
+    <a class="back-btn" href="index.php">🔙 Kembali</a>
+</div>
 </body>
 </html>
